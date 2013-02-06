@@ -56,13 +56,21 @@
  * }
  */
 
-var Command = require(./Command.js);
+String.prototype.startsWith = function(str){
+	var comp = this.substr(0, str.length);
+	return comp === str;
+};
+
+var Command = require('./Command.js'),
+	fs      = require('fs'); //dont need this other than for testing
 
 var Interpreter = function(){};
 
 Interpreter.prototype.interpret = function(stringCmdFile) {
 	var cmds, cmdList;
+	cmdlist = [];
 	cmds = stringCmdFile.split('\n\n');
+	console.log(cmds);
 	for(string in cmds){
 		cmdlist.push(this.strip(cmds[string]));
 	}
@@ -71,24 +79,28 @@ Interpreter.prototype.interpret = function(stringCmdFile) {
 Interpreter.prototype.strip = function(strCmd) {
 	var cmdObj;
 	if(strCmd.startsWith('!{{')){
-
+		console.log('Run on command compare fail');
 	}
 	else if(strCmd.startsWith('{{')){
-
+		console.log('Run on command compare pass');
 	}
 	else if(strCmd.startsWith('{')){
-		if(strCmd.contains('}{')){
+		var stripped;
+		if((stripped = strCmd.split('}{')).length > 1){
 			//compare with another command and notify
+			console.log('compare two functions');
 		}
-		else if(strCmd.contains('}(')){
+		else if((stripped = strCmd.split('}(')).length > 1){
 			//compare literal and notify
+			console.log('compare a function and a string');
 		}
-		else if(strCmd.endsWith('!')){
-			var stripped = strCmd.replace('!', '');
-			return this.createNotifErrCmd(this.resolveCommandBlock(stripped));
-		}
+		else if((stripped = strCmd.split('!')).length > 1){
+			return this.createNotifErrCmd(this.resolveCommandBlock(stripped[0]));
+			console.log(this.resolveCommandBlock(stripped[0]));
+		}   
 		else{
 			return this.createBasicCmd(this.resolveCommandBlock(strCmd));
+			console.log(this.resolveCommandBlock(strCmd));
 		}
 	}
 	else{
@@ -100,7 +112,7 @@ Interpreter.prototype.resolveCommandBlock = function(strCmd){
 	var resolvedCmd = '';
 	resolvedCmd     = strCmd.replace(/;/g, '\n');
 	resolvedCmd     = resolvedCmd.replace(/\{|\}/g, '');
-	return resolveCommandBlock;
+	return resolvedCmd;
 };
 
 Interpreter.prototype.createBasicCmd = function(strCmd){
@@ -116,8 +128,10 @@ Interpreter.prototype.createNotifErrCmd = function(strCmd){
 	return cmdObj;
 };
 
-exports = Interpreter;
+//exports = Interpreter;
 
+var interpreter = new Interpreter();
+interpreter.interpret(fs.readFileSync('./cmd.txt', 'utf8'));
 
 
 

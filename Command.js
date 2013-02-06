@@ -8,6 +8,7 @@ var exec = require( 'child_process' ).exec;
 var Command = function(){
 	this.baseCommand  = null;
 	this.compCommand  = null;
+	this.compString   = null;
 	this.ifError      = false;
 	this.ifTrue       = false;
 	this.ifFalse      = false;
