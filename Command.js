@@ -17,4 +17,4 @@ var Command = function(){
 	this.falseCommand = null;
 };
 
-exports = Command;
+exports.constructor = Command;

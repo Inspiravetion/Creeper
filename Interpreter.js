@@ -26,6 +26,8 @@
  * 
  * 4. Compare stndout of one command to stndout of another and notify you of result: 
  * {echo this is some command}{echo compare him to me}
+ *
+ * THE SECOND COMPARE PARAM FOR ANY OF THESE CAN BE (I AM A STRING LITERAL) 
  * 
  * 5. If true logic for commands: 
  * {{echo if this}{echo matches this then}}{
@@ -61,19 +63,20 @@ String.prototype.startsWith = function(str){
 	return comp === str;
 };
 
-var Command = require('./Command.js'),
+var Command = require('./Command.js').constructor,
 	fs      = require('fs'); //dont need this other than for testing
 
 var Interpreter = function(){};
 
 Interpreter.prototype.interpret = function(stringCmdFile) {
-	var cmds, cmdList;
+	var cmds, cmdlist;
 	cmdlist = [];
 	cmds = stringCmdFile.split('\n\n');
 	console.log(cmds);
 	for(string in cmds){
 		cmdlist.push(this.strip(cmds[string]));
 	}
+	console.log(cmdlist);
 };
 
 Interpreter.prototype.strip = function(strCmd) {
@@ -87,20 +90,16 @@ Interpreter.prototype.strip = function(strCmd) {
 	else if(strCmd.startsWith('{')){
 		var stripped;
 		if((stripped = strCmd.split('}{')).length > 1){
-			//compare with another command and notify
-			console.log('compare two functions');
+			return this.createNotifCmdCmd(stripped[0],stripped[1]);
 		}
 		else if((stripped = strCmd.split('}(')).length > 1){
-			//compare literal and notify
-			console.log('compare a function and a string');
+			return this.createNotifStrCmd(stripped[0], stripped[1]);
 		}
 		else if((stripped = strCmd.split('!')).length > 1){
 			return this.createNotifErrCmd(this.resolveCommandBlock(stripped[0]));
-			console.log(this.resolveCommandBlock(stripped[0]));
 		}   
 		else{
 			return this.createBasicCmd(this.resolveCommandBlock(strCmd));
-			console.log(this.resolveCommandBlock(strCmd));
 		}
 	}
 	else{
@@ -128,6 +127,19 @@ Interpreter.prototype.createNotifErrCmd = function(strCmd){
 	return cmdObj;
 };
 
+Interpreter.prototype.createNotifStrCmd = function(cmd, str) {
+	var cmdObj         = new Command();
+	cmdObj.baseCommand = cmd.replace('{', '');
+	cmdObj.compString  = str.replace(')', '');
+	return cmdObj;
+};
+
+Interpreter.prototype.createNotifCmdCmd = function(cmd1, cmd2) {
+	var cmdObj         = new Command();
+	cmdObj.baseCommand = cmd1.replace('{', '');
+	cmdObj.compCommand = cmd2.replace('}', '');
+	return cmdObj;
+};
 //exports = Interpreter;
 
 var interpreter = new Interpreter();

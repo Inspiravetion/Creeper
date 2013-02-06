@@ -14,5 +14,3 @@
 {{positivecontrol log}{with anoth command}}
 
 !{{negative control logic}{with another command}}
-
-node ../Bundle/Bundle.js
