@@ -61,13 +61,15 @@ var Command = require(./Command.js);
 var Interpreter = function(){};
 
 Interpreter.prototype.interpret = function(stringCmdFile) {
-	var cmds = stringCmdFile.split('\n\n');
+	var cmds, cmdList;
+	cmds = stringCmdFile.split('\n\n');
 	for(string in cmds){
-		this.strip(cmds[string]);
+		cmdlist.push(this.strip(cmds[string]));
 	}
 };
 
 Interpreter.prototype.strip = function(strCmd) {
+	var cmdObj;
 	if(strCmd.startsWith('!{{')){
 
 	}
@@ -75,7 +77,19 @@ Interpreter.prototype.strip = function(strCmd) {
 
 	}
 	else if(strCmd.startsWith('{')){
-		this.resolveCommandBlock(strCmd);
+		if(strCmd.contains('}{')){
+			//compare with another command and notify
+		}
+		else if(strCmd.contains('}(')){
+			//compare literal and notify
+		}
+		else if(strCmd.endsWith('!')){
+			var stripped = strCmd.replace('!', '');
+			return this.createNotifErrCmd(this.resolveCommandBlock(stripped));
+		}
+		else{
+			return this.createBasicCmd(this.resolveCommandBlock(strCmd));
+		}
 	}
 	else{
 		throw new Error('Command file contains invalid commands.');
@@ -87,6 +101,19 @@ Interpreter.prototype.resolveCommandBlock = function(strCmd){
 	resolvedCmd     = strCmd.replace(/;/g, '\n');
 	resolvedCmd     = resolvedCmd.replace(/\{|\}/g, '');
 	return resolveCommandBlock;
+};
+
+Interpreter.prototype.createBasicCmd = function(strCmd){
+	var cmdObj         = new Command();
+	cmdObj.baseCommand = strCmd;
+	return cmdObj;
+};
+
+Interpreter.prototype.createNotifErrCmd = function(strCmd){
+	var cmdObj         = new Command();
+	cmdObj.baseCommand = strCmd;
+	cmdObj.ifError     = true;
+	return cmdObj;
 };
 
 exports = Interpreter;
