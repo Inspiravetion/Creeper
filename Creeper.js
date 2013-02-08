@@ -7,10 +7,13 @@ var fs     = require( 'fs' ),
     cmds   = parseCommands(process.argv[3]),
     chng   = 0;
 
+//Startup Logging==============================================================
 console.log( '\n\nCreeping on ' + file ); 
 setTimeout(function(){
     snitch.pass('Creeping on ' + file );
 }, 200);
+
+//File Watch Logic=============================================================
 fs.watch( file, function( evt, filename ) { 
     chng++;
     util.puts(evt + ' ' + chng + ':-----------------------------------------');
@@ -19,7 +22,8 @@ fs.watch( file, function( evt, filename ) {
     }
 }); 
 
-function run(cmd, snitch){
+//Shouldnt need this (Grunt.js)
+/*function run(cmd, snitch){
     exec(cmd, function(err, stdout, stderr){
         if(err){
             console.log(err);
@@ -28,11 +32,12 @@ function run(cmd, snitch){
             console.log(stdout);
         }
     });
-}
+}*/
 
-function parseCommands(path){
+//Shouldnt need this (Interpreter.js)
+/*function parseCommands(path){
     return fs.readFileSync(path, 'utf8').split('\n');
-}
+}*/
 
 
 
@@ -41,7 +46,6 @@ function parseCommands(path){
 
 
 /*
-    1.Desktop notifications(growl or notification center?) node-osx-notifier and node-growl ***
     2.control logic
     3.manage processes so its not a thousand random ones springing up
     4.try savinf the child process and only running exec on one.
