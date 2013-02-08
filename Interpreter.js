@@ -80,12 +80,11 @@ Interpreter.prototype.interpret = function(stringCmdFile) {
 };
 
 Interpreter.prototype.strip = function(strCmd) {
-	var cmdObj;
 	if(strCmd.startsWith('!{{')){
-		console.log('Run on command compare fail');
+		return this.resolveControlLogic(strCmd.substr(1), false);
 	}
 	else if(strCmd.startsWith('{{')){
-		console.log('Run on command compare pass');
+		return this.resolveControlLogic(strCmd, true);
 	}
 	else if(strCmd.startsWith('{')){
 		var stripped;
@@ -108,10 +107,25 @@ Interpreter.prototype.strip = function(strCmd) {
 };
 
 Interpreter.prototype.resolveCommandBlock = function(strCmd){
+	if(!strCmd){
+		return;
+	}
 	var resolvedCmd = '';
 	resolvedCmd     = strCmd.replace(/;/g, '\n');
 	resolvedCmd     = resolvedCmd.replace(/\{|\}/g, '');
 	return resolvedCmd;
+};
+
+Interpreter.prototype.resolveControlLogic = function(strCmd, pos){
+	var stripped, condition, cmds, ifCmds, elseCmds, cmd1, cmd2;
+		stripped  = strCmd.split('}}');
+		condition = stripped[0].split('}{');
+		cmd1      = this.resolveCommandBlock(condition[0]);
+		cmd2      = this.resolveCommandBlock(condition[1]);
+		cmds      = stripped[1].split('}{');
+		ifCmds    = this.resolveCommandBlock(cmds[0]);
+		elseCmds  = this.resolveCommandBlock(cmds[1]);
+		return this.createCtrlLogiCmd(cmd1, cmd2, ifCmds, elseCmds, pos);
 };
 
 Interpreter.prototype.createBasicCmd = function(strCmd){
@@ -123,7 +137,7 @@ Interpreter.prototype.createBasicCmd = function(strCmd){
 Interpreter.prototype.createNotifErrCmd = function(strCmd){
 	var cmdObj         = new Command();
 	cmdObj.baseCommand = strCmd;
-	cmdObj.ifError     = true;
+	cmdObj.notifOnErr  = true;
 	return cmdObj;
 };
 
@@ -140,13 +154,28 @@ Interpreter.prototype.createNotifCmdCmd = function(cmd1, cmd2) {
 	cmdObj.compCommand = cmd2.replace('}', '');
 	return cmdObj;
 };
+
+Interpreter.prototype.createCtrlLogiCmd = function(cmd1, cmd2, ifCmd, elseCmd, pos){
+	var cmdObj = new Command();
+	cmdObj.baseCommand  = cmd1;
+	cmdObj.compCommand  = cmd2;
+	if(pos){
+		cmdObj.trueCommand  = ifCmd || null;
+		cmdObj.falseCommand = elseCmd || null;
+		return cmdObj;
+	}
+	cmdObj.falseCommand = ifCmd || null;
+	return cmdObj;
+};
 //exports = Interpreter;
 
 var interpreter = new Interpreter();
 interpreter.interpret(fs.readFileSync('./cmd.txt', 'utf8'));
 
 
-
+/*
+still have to implement the control logic stuff with pure strings too
+ */
 
 
 
