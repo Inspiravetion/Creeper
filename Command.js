@@ -9,7 +9,6 @@ var Command = function(){
 	this.baseCommand  = null;
 	this.compCommand  = null;
 	this.compString   = null;
-	this.notifOnErr   = false;
 	this.trueCommand  = null;
 	this.falseCommand = null;
 };
