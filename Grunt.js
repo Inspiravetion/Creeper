@@ -6,7 +6,6 @@ var Grunt = function(snitch){
 };
 
 Grunt.prototype.doWorkSon = function(cmdList) {
-	// systematically run all commands in cmdlist 
     for (cmd in cmdList) {
         this.run(cmdList[cmd]);
     } 
