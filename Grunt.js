@@ -5,11 +5,15 @@ var Grunt = function(snitch){
     this._count  = 1;
 };
 
-Grunt.prototype.doWorkSon = function(cmdList) {
-    for (cmd in cmdList) {
-        this.run(cmdList[cmd]);
-    } 
-    this._snitch.dipset();
+Grunt.prototype.doWorkSon = function(cmdList, offset) {
+    this.run(cmdList[offset]);
+    offset++;
+    var self = this;
+    setTimeout(function(){
+        if(offset != cmdList.length){
+           self.doWorkSon(cmdList, offset);
+        }
+    }, 20);
 };
 
 /**

@@ -16,7 +16,7 @@ setTimeout(function(){
 fs.watch( file, function( evt, filename ) { 
     if(toggle === true){
         var commands = interp.interpret(cmdFile);
-        grunt.doWorkSon(commands);
+        grunt.doWorkSon(commands, 0);
         toggle = false;
     }else{
         toggle = true;
