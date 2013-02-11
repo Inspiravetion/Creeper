@@ -1,27 +1,35 @@
-{base command}
+{echo base command}
 
-{base command
- with a command block
- in it}
+{echo base command
+ echo with a command block
+ echo in it}
 
-{base commmand; with the other; type of command block}
+{echo base commmand; echo with the other; echo type of command block}
 
-{compare me with}(some string)
+{echo compare me with}(echo some string)
 
-{compare me with}{another command}
+{echo compare me with}{echo another command}
 
-{{positivecontrol log}{with anoth command}}{
-	run this
+{{echo positivecontrol log}{echo with anoth command}}{
+	echo run this
 }
 
-!{{negative control logic}{with another command}}{
-	run this on failed test
+!{{echo negative control logic}{echo with another command}}{
+	echo run this on failed test
 }
 
-{{if else control logic}{with anoth command}}{
-	run this
-	and this
-	and this too
+{{echo if else control logic}{echo with anoth command}}{
+	echo run this
+	echo and this
+	echo and this too
 }{
-	or this;and eh...this too
+	echo or this
+}
+
+{{echo if else control logic}{echo if else control logic}}{
+	echo run this
+	echo and this
+	echo and this too
+}{
+	echo or this
 }

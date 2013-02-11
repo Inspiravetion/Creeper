@@ -63,8 +63,7 @@ String.prototype.startsWith = function(str){
 	return comp === str;
 };
 
-var Command = require('./Command.js').constructor,
-	fs      = require('fs'); //dont need this other than for testing
+var Command = require('./Command.js').constructor;
 
 var Interpreter = function(){};
 
@@ -72,11 +71,10 @@ Interpreter.prototype.interpret = function(stringCmdFile) {
 	var cmds, cmdlist;
 	cmdlist = [];
 	cmds = stringCmdFile.split('\n\n');
-	console.log(cmds);
 	for(string in cmds){
 		cmdlist.push(this.strip(cmds[string]));
 	}
-	console.log(cmdlist);
+	return cmdlist;
 };
 
 Interpreter.prototype.strip = function(strCmd) {
@@ -167,15 +165,7 @@ Interpreter.prototype.createCtrlLogiCmd = function(cmd1, cmd2, ifCmd, elseCmd, p
 	cmdObj.falseCommand = ifCmd || null;
 	return cmdObj;
 };
-//exports = Interpreter;
-
-var interpreter = new Interpreter();
-interpreter.interpret(fs.readFileSync('./cmd.txt', 'utf8'));
-
-
-/*
-still have to implement the control logic stuff with pure strings too
- */
+exports.instance = new Interpreter();
 
 
 

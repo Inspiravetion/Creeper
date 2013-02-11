@@ -27,4 +27,4 @@ Snitch.prototype.fail = function(msg) {
     Snitch.prototype.snitch('fail', msg);
 };
 
-exports.Snitch = Snitch;
+exports.Snitch = new Snitch();

@@ -1,9 +1,16 @@
+var exec = require( 'child_process' ).exec;
+
 var Grunt = function(snitch){
 	this._snitch = snitch;
+    this._count  = 1;
 };
 
 Grunt.prototype.doWorkSon = function(cmdList) {
-	// systematically run all commands in cmdlist
+	// systematically run all commands in cmdlist 
+    for (cmd in cmdList) {
+        this.run(cmdList[cmd]);
+    } 
+    this._snitch.dipset();
 };
 
 /**
@@ -13,30 +20,31 @@ Grunt.prototype.doWorkSon = function(cmdList) {
  * @return {[type]}     [description]
  */
 Grunt.prototype.run = function(cmd){
-    //report with snitch where need be
     var self = this;
     exec(cmd.baseCommand, function(err, stdout, stderr){
         if(err || stderr){
             self.report(err || stderr);
         }
         else if(cmd.compCommand || cmd.compString){
-            var compare = cmd.compCommand || cmd.compString;
             if(cmd.trueCommand){
                 if(cmd.falseCommand){
-                    self.ifElse(compare, stdout);
+                    self.ifLogic(cmd, stdout, true);
                 }
                 else{
-                    //notify and run true command if it passes
+                    self.ifLogic(cmd, stdout, false);
                 }
             }
             else{
-                //notify the response
+                self.reportExec(cmd, stdout);
             }
+        }
+        else{
+            self.report(stdout);
         }
     });
 };
 
-Grunt.prototype.baseExec = function(cmd, snitchFlag){
+Grunt.prototype.baseExec = function(cmd){
     var self = this;
     exec(cmd, function(err, stdout, stderr){
         if(err || stderr){
@@ -47,24 +55,45 @@ Grunt.prototype.baseExec = function(cmd, snitchFlag){
     });
 };
 
+Grunt.prototype.reportExec = function(cmd, oldOut){
+    var self = this,
+    compare = cmd.compCommand || cmd.compString;
+    exec(compare, function(err, stdout, stderr){
+        if(err || stderr){
+            self.report(err || stderr);
+        }else if(oldOut == stdout){
+            self.report('Commands Match');
+        }
+        else{
+            self.report('Commands did not Match');
+        }
+    });
+};
+
 Grunt.prototype.report = function(msg){
+    console.log('Command ' + this._count + ':==========================\n');
+    this._count++;
     if(this._snitch){
         this._snitch.info(msg);
         console.log(msg);
+
     }else{
         console.log(msg);
     }
 };
 
-Grunt.prototype.ifElse = function(cmd, oldOut){
-    exec(cmd.compCommand, function(err, stdout, stderr){
+Grunt.prototype.ifLogic = function(cmd, oldOut, elseFlag){
+    var self    = this,
+        compare = cmd.compCommand || cmd.compString;
+    exec(compare, function(err, stdout, stderr){
         if(oldOut == stdout){
             self.baseExec(cmd.trueCommand);
-        }else{
+        }else if(elseFlag){
             self.baseExec(cmd.falseCommand);
         }
     });
 };
 
-
-
+exports.instance = function(snitch){
+    return new Grunt(snitch);
+};
