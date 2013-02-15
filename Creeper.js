@@ -29,7 +29,10 @@ fs.watch( file, function( evt, filename ) {
 /*
     1.control logic for string compares
     2.need to be able to support "contains" pass/fail functionality
-    3.manage processes so they run in order...queue with callback?
-    4.queue snitch notifications so that they are all shown
-
+    3.queue snitch notifications so that they are all shown
+        ->might have to look into the osx-notifier-dependency
+    4.make Creeper.js a cli so that you can watch and stop watching files on command
+        ->start a child_process and have it listen for messages from this process
+        ->funnel child_process stdout to this stdout but with a special color(color node module?)
+    5.Start writing tests for all of this shit
     */
