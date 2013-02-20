@@ -50,12 +50,37 @@ Creepl.prototype.startREPLClient = function(){
 };
 
 Creepl.prototype.customEval = function(cmd, context, filename, callback){
-  var result = "this is the result";
-  console.log('Command: ' + cmd );
-  console.log('Context: ' + context);
-  console.log('filename: ' + filename);
-
+  var processed, result;
+  result = 'Unknown Command';
+  processed = Creepl.prototype.processCmd(cmd);
+  if(processed.cmd.toLowerCase() == 'morecreepy'){
+  	result = Creepl.prototype.moreCreepy(processed.args);
+  }
+  else if(processed.cmd.toLowerCase() == 'lesscreepy'){
+  	result = Creepl.prototype.lessCreepy(processed.args);
+  }
   callback(null, result);
+};
+
+Creepl.prototype.processCmd = function(cmd) {
+	var fullcommand, processed;
+	cmd = cmd.slice(1, cmd.length -1);
+	cmd = cmd.slice(0, cmd.length - 1);
+	fullcommand = cmd.split(" ");
+	processed = {'cmd': fullcommand[0], 'args': fullcommand.slice(1)};
+	return processed;
+};
+
+Creepl.prototype.moreCreepy = function(args) {
+	// body...
+	// 
+	return 'Creeping on ' + args[0] + '...';
+};
+
+Creepl.prototype.lessCreepy = function(args) {
+	// body...
+	// 
+	return 'Done creeping on ' + args[0] + '...';
 };
 
 var c = new Creepl().startREPL();

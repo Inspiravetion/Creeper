@@ -55,15 +55,22 @@ Interpreter.prototype.resolveCommandBlock = function(strCmd){
 };
 
 Interpreter.prototype.resolveControlLogic = function(strCmd, pos){
-	var stripped, condition, cmds, ifCmds, elseCmds, cmd1, cmd2;
-		stripped  = strCmd.split('}}');
-		condition = stripped[0].split('}{');
+	var stripped, condition, cmds, ifCmds, elseCmds, cmd1, cmd2, stringComp;
+		if ((stripped  = strCmd.split('}}')).length > 1){
+			condition = stripped[0].split('}{');
+			stringComp = false;
+		}
+		else{
+			stripped  = strCmd.split(')}');
+			condition = stripped[0].split('}(');
+			stringComp = true;
+		}
 		cmd1      = this.resolveCommandBlock(condition[0]);
 		cmd2      = this.resolveCommandBlock(condition[1]);
 		cmds      = stripped[1].split('}{');
 		ifCmds    = this.resolveCommandBlock(cmds[0]);
 		elseCmds  = this.resolveCommandBlock(cmds[1]);
-		return this.createCtrlLogiCmd(cmd1, cmd2, ifCmds, elseCmds, pos);
+		return this.createCtrlLogiCmd(cmd1, cmd2, ifCmds, elseCmds, pos, stringComp);
 };
 
 Interpreter.prototype.createBasicCmd = function(strCmd){
@@ -93,10 +100,15 @@ Interpreter.prototype.createNotifCmdCmd = function(cmd1, cmd2) {
 	return cmdObj;
 };
 
-Interpreter.prototype.createCtrlLogiCmd = function(cmd1, cmd2, ifCmd, elseCmd, pos){
+Interpreter.prototype.createCtrlLogiCmd = function(cmd1, cmd2, ifCmd, elseCmd, pos, stringComp){
 	var cmdObj = new Command();
 	cmdObj.baseCommand  = cmd1;
-	cmdObj.compCommand  = cmd2;
+	if(stringComp){
+		cmdObj.compString = cmd2;
+	}
+	else{
+		cmdObj.compCommand  = cmd2;
+	}
 	if(pos){
 		cmdObj.trueCommand  = ifCmd || null;
 		cmdObj.falseCommand = elseCmd || null;
