@@ -27,7 +27,6 @@ fs.watch( file, function( evt, filename ) {
 
 
 /*
-    1.control logic for string compares
     2.need to be able to support "contains" pass/fail functionality
     3.queue snitch notifications so that they are all shown
         ->might have to look into the osx-notifier-dependency
@@ -35,5 +34,5 @@ fs.watch( file, function( evt, filename ) {
         ->start a child_process and have it listen for messages from this process
         ->funnel child_process stdout to this stdout but with a special color(color node module?)
     5.Start writing tests for all of this shit
-    6.allow users to add/remove commands to individual command files vis the repl
+    6.allow users to add/remove commands to individual command files via the repl
     */

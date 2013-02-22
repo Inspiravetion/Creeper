@@ -45,3 +45,11 @@
 }{
 	echo or this 10
 }
+
+{{echo this is a test for }((echo contains string compare functionality))}{
+  	echo run this shit
+ }{
+ 	echo contains joint failed as it should
+ }
+
+ {echo some command}((this is a string literal that should be contained))

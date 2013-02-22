@@ -17,7 +17,9 @@ Interpreter.prototype.interpret = function(stringCmdFile) {
 	return cmdlist;
 };
 
+
 Interpreter.prototype.strip = function(strCmd) {
+	strCmd = strCmd.trim();
 	if(strCmd.startsWith('!{{')){
 		return this.resolveControlLogic(strCmd.substr(1), false);
 	}
@@ -30,7 +32,11 @@ Interpreter.prototype.strip = function(strCmd) {
 			return this.createNotifCmdCmd(stripped[0],stripped[1]);
 		}
 		else if((stripped = strCmd.split('}(')).length > 1){
-			return this.createNotifStrCmd(stripped[0], stripped[1]);
+			var processedStringComp, conditions, containsFlag;
+			processedStringComp = this.resolveStringCompType(stripped);
+			conditions = processedStringComp.conditions;
+			containsFlag = processedStringComp.containsFlag;
+			return this.createNotifStrCmd(conditions[0], conditions[1], containsFlag);
 		}
 		else if((stripped = strCmd.split('!')).length > 1){
 			return this.createNotifErrCmd(this.resolveCommandBlock(stripped[0]));
@@ -40,7 +46,7 @@ Interpreter.prototype.strip = function(strCmd) {
 		}
 	}
 	else{
-		throw new Error('Command file contains invalid commands.');
+		throw new Error('Command file contains invalid command: ' + strCmd);
 	}
 };
 
@@ -55,14 +61,16 @@ Interpreter.prototype.resolveCommandBlock = function(strCmd){
 };
 
 Interpreter.prototype.resolveControlLogic = function(strCmd, pos){
-	var stripped, condition, cmds, ifCmds, elseCmds, cmd1, cmd2, stringComp;
+	var stripped, condition, cmds, ifCmds, elseCmds, cmd1, cmd2, stringComp, processedStringComp, stringCont;
 		if ((stripped  = strCmd.split('}}')).length > 1){
 			condition = stripped[0].split('}{');
 			stringComp = false;
 		}
 		else{
 			stripped  = strCmd.split(')}');
-			condition = stripped[0].split('}(');
+			processedStringComp = this.resolveStringCompType(stripped[0].split('}('));
+			condition = processedStringComp.conditions;
+			stringCont = processedStringComp.containsFlag;
 			stringComp = true;
 		}
 		cmd1      = this.resolveCommandBlock(condition[0]);
@@ -70,7 +78,16 @@ Interpreter.prototype.resolveControlLogic = function(strCmd, pos){
 		cmds      = stripped[1].split('}{');
 		ifCmds    = this.resolveCommandBlock(cmds[0]);
 		elseCmds  = this.resolveCommandBlock(cmds[1]);
-		return this.createCtrlLogiCmd(cmd1, cmd2, ifCmds, elseCmds, pos, stringComp);
+		console.log('comp: ' + stringComp + ' cont: ' + stringCont);
+		return this.createCtrlLogiCmd(cmd1, cmd2, ifCmds, elseCmds, pos, stringComp, stringCont);
+};
+
+Interpreter.prototype.resolveStringCompType = function(compArr) {
+	var flag, initString;
+	initString = compArr[1];
+	compArr[1] = initString.replace(/\(|\)/g, '');
+	flag       = initString.length == compArr[1].length ? false : true;
+	return {'conditions' : compArr, 'containsFlag' : flag};
 };
 
 Interpreter.prototype.createBasicCmd = function(strCmd){
@@ -86,10 +103,14 @@ Interpreter.prototype.createNotifErrCmd = function(strCmd){
 	return cmdObj;
 };
 
-Interpreter.prototype.createNotifStrCmd = function(cmd, str) {
+Interpreter.prototype.createNotifStrCmd = function(cmd, str, stringCont) {
 	var cmdObj         = new Command();
 	cmdObj.baseCommand = cmd.replace('{', '');
 	cmdObj.compString  = str.replace(')', '');
+	if(stringCont){
+		cmdObj.containsFlag = true;
+	}
+	console.log(cmdObj);
 	return cmdObj;
 };
 
@@ -100,11 +121,14 @@ Interpreter.prototype.createNotifCmdCmd = function(cmd1, cmd2) {
 	return cmdObj;
 };
 
-Interpreter.prototype.createCtrlLogiCmd = function(cmd1, cmd2, ifCmd, elseCmd, pos, stringComp){
+Interpreter.prototype.createCtrlLogiCmd = function(cmd1, cmd2, ifCmd, elseCmd, pos, stringComp, stringCont){
 	var cmdObj = new Command();
 	cmdObj.baseCommand  = cmd1;
 	if(stringComp){
 		cmdObj.compString = cmd2;
+		if(stringCont){
+			cmdObj.containsFlag = true;
+		}
 	}
 	else{
 		cmdObj.compCommand  = cmd2;
@@ -117,6 +141,7 @@ Interpreter.prototype.createCtrlLogiCmd = function(cmd1, cmd2, ifCmd, elseCmd, p
 	cmdObj.falseCommand = ifCmd || null;
 	return cmdObj;
 };
+
 exports.instance = new Interpreter();
 
 
