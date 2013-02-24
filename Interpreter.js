@@ -1,63 +1,3 @@
-/**
- * Interpreter.js
- * 1. figure out what control logic should be supported
- * 2. decide on syntax
- * 3. implement
- */
-
-/**
- * Control Logic
- * 1. ways to test if a command did not bare the results it should have
- * 2. notification if a process dies or logs an error
- * 3. branch logic based off of the results of 1
- * 4. have a command block so that a group of commands can be treated as one
- */
-
-/**
- * Syntax
- * 1. Basic command: 
- * {echo this is some command}
- * 
- * 2. Notify on die/error: 
- * {echo this is some command}!
- * 
- * 3. Compare stndout to given string and notify you of result: 
- * {echo this is some command}(this is some command) 
- * 
- * 4. Compare stndout of one command to stndout of another and notify you of result: 
- * {echo this is some command}{echo compare him to me}
- *
- * THE SECOND COMPARE PARAM FOR ANY OF THESE CAN BE (I AM A STRING LITERAL) 
- * 
- * 5. If true logic for commands: 
- * {{echo if this}{echo matches this then}}{
- * 		echo then run this command
- * 		echo and this commmand
- * 		echo and this command
- * }
- * 6. If false logic for commands: 
- * !{{echo if this}{echo matches this then}}{
- * 		echo then run this command
- * 		echo and this commmand
- * 		echo and this command
- * }
- * 4. If else logic for commands: 
- * {{echo if this}{echo matches this then}}{
- * 		echo then run this command
- * }{
- * 		echo else then run this command
- * 		echo and this commmand
- * }
- * 5.CommandBlock(can take the place of any singular command)
- * {echo command 1;echo command 2;echo command 3}
- * OR
- * {
- * 		echo command 1
- * 	 	echo command 2
- * 	  	echo command 3
- * }
- */
-
 String.prototype.startsWith = function(str){
 	var comp = this.substr(0, str.length);
 	return comp === str;
@@ -77,7 +17,9 @@ Interpreter.prototype.interpret = function(stringCmdFile) {
 	return cmdlist;
 };
 
+
 Interpreter.prototype.strip = function(strCmd) {
+	strCmd = strCmd.trim();
 	if(strCmd.startsWith('!{{')){
 		return this.resolveControlLogic(strCmd.substr(1), false);
 	}
@@ -90,7 +32,11 @@ Interpreter.prototype.strip = function(strCmd) {
 			return this.createNotifCmdCmd(stripped[0],stripped[1]);
 		}
 		else if((stripped = strCmd.split('}(')).length > 1){
-			return this.createNotifStrCmd(stripped[0], stripped[1]);
+			var processedStringComp, conditions, containsFlag;
+			processedStringComp = this.resolveStringCompType(stripped);
+			conditions = processedStringComp.conditions;
+			containsFlag = processedStringComp.containsFlag;
+			return this.createNotifStrCmd(conditions[0], conditions[1], containsFlag);
 		}
 		else if((stripped = strCmd.split('!')).length > 1){
 			return this.createNotifErrCmd(this.resolveCommandBlock(stripped[0]));
@@ -100,7 +46,7 @@ Interpreter.prototype.strip = function(strCmd) {
 		}
 	}
 	else{
-		throw new Error('Command file contains invalid commands.');
+		throw new Error('Command file contains invalid command: ' + strCmd);
 	}
 };
 
@@ -115,15 +61,33 @@ Interpreter.prototype.resolveCommandBlock = function(strCmd){
 };
 
 Interpreter.prototype.resolveControlLogic = function(strCmd, pos){
-	var stripped, condition, cmds, ifCmds, elseCmds, cmd1, cmd2;
-		stripped  = strCmd.split('}}');
-		condition = stripped[0].split('}{');
+	var stripped, condition, cmds, ifCmds, elseCmds, cmd1, cmd2, stringComp, processedStringComp, stringCont;
+		if ((stripped  = strCmd.split('}}')).length > 1){
+			condition = stripped[0].split('}{');
+			stringComp = false;
+		}
+		else{
+			stripped  = strCmd.split(')}');
+			processedStringComp = this.resolveStringCompType(stripped[0].split('}('));
+			condition = processedStringComp.conditions;
+			stringCont = processedStringComp.containsFlag;
+			stringComp = true;
+		}
 		cmd1      = this.resolveCommandBlock(condition[0]);
 		cmd2      = this.resolveCommandBlock(condition[1]);
 		cmds      = stripped[1].split('}{');
 		ifCmds    = this.resolveCommandBlock(cmds[0]);
 		elseCmds  = this.resolveCommandBlock(cmds[1]);
-		return this.createCtrlLogiCmd(cmd1, cmd2, ifCmds, elseCmds, pos);
+		console.log('comp: ' + stringComp + ' cont: ' + stringCont);
+		return this.createCtrlLogiCmd(cmd1, cmd2, ifCmds, elseCmds, pos, stringComp, stringCont);
+};
+
+Interpreter.prototype.resolveStringCompType = function(compArr) {
+	var flag, initString;
+	initString = compArr[1];
+	compArr[1] = initString.replace(/\(|\)/g, '');
+	flag       = initString.length == compArr[1].length ? false : true;
+	return {'conditions' : compArr, 'containsFlag' : flag};
 };
 
 Interpreter.prototype.createBasicCmd = function(strCmd){
@@ -139,10 +103,14 @@ Interpreter.prototype.createNotifErrCmd = function(strCmd){
 	return cmdObj;
 };
 
-Interpreter.prototype.createNotifStrCmd = function(cmd, str) {
+Interpreter.prototype.createNotifStrCmd = function(cmd, str, stringCont) {
 	var cmdObj         = new Command();
 	cmdObj.baseCommand = cmd.replace('{', '');
 	cmdObj.compString  = str.replace(')', '');
+	if(stringCont){
+		cmdObj.containsFlag = true;
+	}
+	console.log(cmdObj);
 	return cmdObj;
 };
 
@@ -153,10 +121,18 @@ Interpreter.prototype.createNotifCmdCmd = function(cmd1, cmd2) {
 	return cmdObj;
 };
 
-Interpreter.prototype.createCtrlLogiCmd = function(cmd1, cmd2, ifCmd, elseCmd, pos){
+Interpreter.prototype.createCtrlLogiCmd = function(cmd1, cmd2, ifCmd, elseCmd, pos, stringComp, stringCont){
 	var cmdObj = new Command();
 	cmdObj.baseCommand  = cmd1;
-	cmdObj.compCommand  = cmd2;
+	if(stringComp){
+		cmdObj.compString = cmd2;
+		if(stringCont){
+			cmdObj.containsFlag = true;
+		}
+	}
+	else{
+		cmdObj.compCommand  = cmd2;
+	}
 	if(pos){
 		cmdObj.trueCommand  = ifCmd || null;
 		cmdObj.falseCommand = elseCmd || null;
@@ -165,6 +141,7 @@ Interpreter.prototype.createCtrlLogiCmd = function(cmd1, cmd2, ifCmd, elseCmd, p
 	cmdObj.falseCommand = ifCmd || null;
 	return cmdObj;
 };
+
 exports.instance = new Interpreter();
 
 

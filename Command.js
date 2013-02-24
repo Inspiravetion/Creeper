@@ -9,6 +9,7 @@ var Command = function(){
 	this.compString   = null;
 	this.trueCommand  = null;
 	this.falseCommand = null;
+	this.containsFlag = null;
 };
 
 exports.constructor = Command;

@@ -37,7 +37,19 @@ Grunt.prototype.run = function(cmd){
                     self.ifLogic(cmd, stdout, false);
                 }
             }
+            else if(cmd.falseCommand){
+                self.ifLogic(cmd, stdout, true);
+            }
             else{
+                if(cmd.compString){
+                    if(cmd.compString.trim() == stdout.trim()){
+                        self.report('Commands Match')
+                    }
+                    else{
+                        self.report('Commands did not Match');
+                    }
+                    return;
+                }
                 self.reportExec(cmd, stdout);
             }
         }
@@ -86,14 +98,33 @@ Grunt.prototype.report = function(msg){
 };
 
 Grunt.prototype.ifLogic = function(cmd, oldOut, elseFlag){
-    var self    = this,
-        compare = cmd.compCommand || cmd.compString;
-    exec(compare, function(err, stdout, stderr){
-        if(oldOut == stdout){
-            self.baseExec(cmd.trueCommand);
-        }else if(elseFlag){
-            self.baseExec(cmd.falseCommand);
+    var self    = this;
+    //For string compare
+        if(cmd.compString){
+            if(oldOut.trim() == cmd.compString.trim()){
+                if(cmd.trueCommand){
+                    self.baseExec(cmd.trueCommand);
+                    return;
+                }   
+                self.report('Command passed.')
+            }
+            else if(elseFlag){
+                self.baseExec(cmd.falseCommand);
+            }
+            return;
         }
+    //for command result compare
+    exec(cmd.compCommand, function(err, stdout, stderr){
+        if(oldOut == stdout){
+            if(cmd.trueCommand){
+                    self.baseExec(cmd.trueCommand);
+                    return;
+                }   
+                self.report('Command passed.')
+            }
+            else if(elseFlag){
+                self.baseExec(cmd.falseCommand);
+            }
     });
 };
 

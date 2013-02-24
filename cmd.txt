@@ -1,21 +1,25 @@
-{echo base command}
+{echo base command 1}
 
 {echo base command
  echo with a command block
- echo in it}
+ echo in it 2}
 
-{echo base commmand; echo with the other; echo type of command block}
+{echo base commmand; echo with the other; echo type of command block 3}
 
 {echo compare me with}(echo some string)
 
 {echo compare me with}{echo another command}
 
-{{echo positivecontrol log}{echo with anoth command}}{
+{{echo this only runs on true}{echo this only runs on true}}{
 	echo run this
 }
 
 !{{echo negative control logic}{echo with another command}}{
-	echo run this on failed test
+	echo run this on failed test 7
+}
+
+!{{echo negative control logic}(with another command)}{
+	echo string compare negative control
 }
 
 {{echo if else control logic}{echo with anoth command}}{
@@ -23,13 +27,29 @@
 	echo and this
 	echo and this too
 }{
-	echo or this
+	echo or this 8
+}
+
+{{echo with a string literal}(with a string literal)}{
+	echo run this
+	echo and this
+	echo and this too 9
+}{
+	echo or this 9
 }
 
 {{echo if else control logic}{echo if else control logic}}{
 	echo run this
 	echo and this
-	echo and this too
+	echo and this too 10
 }{
-	echo or this
+	echo or this 10
 }
+
+{{echo this is a test for }((echo contains string compare functionality))}{
+  	echo run this shit
+ }{
+ 	echo contains joint failed as it should
+ }
+
+ {echo some command}((this is a string literal that should be contained))
