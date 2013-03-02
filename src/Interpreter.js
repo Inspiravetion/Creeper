@@ -3,6 +3,11 @@ String.prototype.startsWith = function(str){
 	return comp === str;
 };
 
+String.prototype.endsWith = function(str) {
+	var comp = this.substr(this.length-str.length, this.length);
+	return comp === str;
+};
+
 var Command = require('./Command.js').constructor;
 
 var Interpreter = function(){};
@@ -33,6 +38,9 @@ Interpreter.prototype.strip = function(strCmd) {
 		}
 		else if((stripped = strCmd.split('}(')).length > 1){
 			var processedStringComp, conditions, containsFlag;
+			if(stripped[1].endsWith(')')){
+				stripped[1] = stripped[1].substr(0,stripped[1].length - 1);
+			}
 			processedStringComp = this.resolveStringCompType(stripped);
 			conditions = processedStringComp.conditions;
 			containsFlag = processedStringComp.containsFlag;
@@ -41,23 +49,28 @@ Interpreter.prototype.strip = function(strCmd) {
 		else if((stripped = strCmd.split('!')).length > 1){
 			return this.createNotifErrCmd(this.resolveCommandBlock(stripped[0]));
 		}   
-		else{
+		else if(strCmd.endsWith('}')){
 			return this.createBasicCmd(this.resolveCommandBlock(strCmd));
 		}
 	}
-	else{
-		throw new Error('Command file contains invalid command: ' + strCmd);
-	}
+	throw new Error('Command file contains invalid command: ' + strCmd);
 };
 
 Interpreter.prototype.resolveCommandBlock = function(strCmd){
 	if(!strCmd){
 		return;
 	}
-	var resolvedCmd = '';
-	resolvedCmd     = strCmd.replace(/;/g, '\n');
-	resolvedCmd     = resolvedCmd.replace(/\{|\}/g, '');
-	return resolvedCmd;
+	strCmd = strCmd.replace(/\{|\}/g, '').trim().split(';');
+	for(var i = 0; i < strCmd.length; i++){
+		var solo = (i == 0 && strCmd.length == 1);
+		if((i == 0 && !solo) || (i > 0 && i != strCmd.length -1)){
+			strCmd[i] = strCmd[i].trim() + '\n';
+		}
+		else{
+			strCmd[i] = strCmd[i].trim();
+		}
+	}
+	return strCmd.join('');
 };
 
 Interpreter.prototype.resolveControlLogic = function(strCmd, pos){
@@ -78,7 +91,6 @@ Interpreter.prototype.resolveControlLogic = function(strCmd, pos){
 		cmds      = stripped[1].split('}{');
 		ifCmds    = this.resolveCommandBlock(cmds[0]);
 		elseCmds  = this.resolveCommandBlock(cmds[1]);
-		console.log('comp: ' + stringComp + ' cont: ' + stringCont);
 		return this.createCtrlLogiCmd(cmd1, cmd2, ifCmds, elseCmds, pos, stringComp, stringCont);
 };
 
@@ -110,7 +122,6 @@ Interpreter.prototype.createNotifStrCmd = function(cmd, str, stringCont) {
 	if(stringCont){
 		cmdObj.containsFlag = true;
 	}
-	console.log(cmdObj);
 	return cmdObj;
 };
 
@@ -143,6 +154,8 @@ Interpreter.prototype.createCtrlLogiCmd = function(cmd1, cmd2, ifCmd, elseCmd, p
 };
 
 exports.instance = new Interpreter();
+
+exports.constr = Interpreter;
 
 
 
