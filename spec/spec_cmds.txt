@@ -1,0 +1,19 @@
+{jasmine-node Interpreter_spec.js}
+
+{jasmine-node Bookie_spec.js}
+
+{jasmine-node Grunt_spec.js}
+
+{{jasmine-node Interpreter_spec.js}((0 failures))}{
+	echo worrrrrrd Interpreter passed all its tests
+}
+
+{{jasmine-node Bookie_spec.js}(this is a strict string compare)}{
+	echo this should not run
+}{
+	echo this should run on compare failure
+}
+
+!{{jasmine-node Grunt_spec.js}{echo this is a command compare}}{
+	echo this should run
+}
