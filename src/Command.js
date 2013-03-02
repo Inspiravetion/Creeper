@@ -13,3 +13,5 @@ var Command = function(){
 };
 
 exports.constructor = Command;
+
+exports.constr = Command;

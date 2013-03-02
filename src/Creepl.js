@@ -1,9 +1,25 @@
-var repl = require('repl')
-var net = require('net')
+var exec = require( 'child_process' ).exec,
+	repl = require('repl'),
+	net = require('net'),
+	colors = require('colors'),
+	Bookie = require('./Bookie.js').constr,
+	bookie = new Bookie();
+
+var bashCommands = ['clear', 'ls', 'pwd', 'cd', 'mkdir', 'rmdir', 'rm', 'mv', 'cd'];
 
 var Creepl = function(){};
 
-Creepl.prototype.startREPL =function(){
+Creepl.prototype.logo = ' \n \
+_________                                               __         \n \
+\\_   ___ _______  ____  ____ ______   ___________      |__| ______ \n \
+/    \\  \\\\_  __ _/ __ _/ __ \\\\____ \\_/ __ \\_  __ \\     |  |/  ___/ \n \
+\\     \\___|  |  \\\  ___\\  ___/|  |_> \\  ___/|  | \\/     |  |\\___ \\  \n \
+ \\______  |__|   \\___  \\___  |   __/ \\___  |__| /\\ /\\__|  /____  > \n \
+        \\/           \\/    \\/|__|        \\/     \\/ \\______|    \\/ \n \
+---------------------------------------------------------------------\n\n';
+
+Creepl.prototype.startREPL = function(){
+	console.log(Creepl.prototype.logo);
 	this.startREPLServer();
 	this.startREPLClient();
 };
@@ -11,7 +27,7 @@ Creepl.prototype.startREPL =function(){
 Creepl.prototype.startREPLServer = function() {
 	net.createServer(function (socket) {
 		var r = repl.start({
-		      prompt: 'Creeper O_o:'
+		      prompt: null
 		    , input: socket
 		    , output: socket
 		    , terminal: true
@@ -55,15 +71,39 @@ Creepl.prototype.customEval = function(inCmd, context, filename, callback){
   processed = Creepl.prototype.processCmd(inCmd);
   cmd = processed.cmd.toLowerCase().replace(/\t| /g, '');
   if(cmd == 'creepon'){
-  	result = Creepl.prototype.creepOn(processed.args);
+  	result = '';
+  	console.log('\n' + Creepl.prototype.creepOn(processed.args));
   }
   else if(cmd == 'stopcreepingon'){
-  	result = Creepl.prototype.stopCreepingOn(processed.args);
+  	result = '';
+  	console.log('\n' + Creepl.prototype.stopCreepingOn(processed.args));
   }
   else if(cmd == 'creeps'){
-  	result = Creepl.prototype.creeps(processed.args);
+  	result = '';
+  	Creepl.prototype.creeps();
   }
-  callback(null, result);
+  else if(Creepl.prototype.isBashCmd(cmd)){
+  	cmd += ' ' + processed.args.join(' ');
+  	exec(cmd, function(err, stdout, stderr){
+  		console.log('\n')
+  		console.log(err || stdout || stderr);
+  	});
+  	result = '';
+  }
+  else if(cmd === 'logo'){
+  	console.log(Creepl.prototype.logo);
+  	result = '';
+  }
+  callback();
+};
+
+Creepl.prototype.isBashCmd = function(cmd){
+	for(var i = 0; i < bashCommands.length; i++){
+		if(bashCommands[i] === cmd){
+			return true;
+		}
+	}
+	return false;
 };
 
 Creepl.prototype.processCmd = function(cmd) {
@@ -76,21 +116,18 @@ Creepl.prototype.processCmd = function(cmd) {
 };
 
 Creepl.prototype.creepOn = function(args) {
-	// body...
-	// 
-	return 'Creeping on ' + args[0] + '...';
+	bookie.watch(args[0], args[1]);
+	return 'Creeping on ' + args[0].cyan + '...';
 };
 
 Creepl.prototype.stopCreepingOn = function(args) {
-	// body...
-	// 
-	return 'Done creeping on ' + args[0] + '...';
+	bookie.unWatch(args[0]);
+	return 'Done creeping on ' + args[0].cyan + '...';
 };
 
-Creepl.prototype.creeps = function(args) {
-	// body...
-	// list all of the mappings of files being creeped on 
-	// and their command files
+Creepl.prototype.creeps = function() {
+	console.log(bookie.getMapping());
 };
 
 var c = new Creepl().startREPL();
+

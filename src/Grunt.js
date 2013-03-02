@@ -1,11 +1,27 @@
 var exec = require( 'child_process' ).exec;
 
+String.prototype.contains = function(sub) {
+    if(this.indexOf(sub) > -1){
+        return true;
+    }
+    return false;
+};
+
 var Grunt = function(snitch){
 	this._snitch = snitch;
     this._count  = 1;
 };
 
+Grunt.prototype.headerString = '\n\
+////////////////////////////////////////////////////////////////////\n\
+//                       Running Commands...                      //\n\
+////////////////////////////////////////////////////////////////////';
+
 Grunt.prototype.doWorkSon = function(cmdList, offset) {
+    if(offset == 0){
+        console.log(this.headerString);
+        this._count = 1;
+    }
     this.run(cmdList[offset]);
     offset++;
     var self = this;
@@ -95,7 +111,7 @@ Grunt.prototype.reportExec = function(cmd, oldOut){
 };
 
 Grunt.prototype.report = function(msg){
-    console.log('Command ' + this._count + ':==========================\n');
+    console.log(this._count + ':-------------------\n');
     this._count++;
     if(this._snitch){
         this._snitch.info(msg);
@@ -112,6 +128,7 @@ Grunt.prototype.ifLogic = function(cmd, oldOut, elseFlag){
     if(cmd.compString){
         //contains compare
         if(cmd.containsFlag){
+            console.log(typeof oldOut);
             if(oldOut.trim().contains(cmd.compString.trim())){
                 if(cmd.trueCommand){
                     self.baseExec(cmd.trueCommand);
@@ -140,6 +157,9 @@ Grunt.prototype.ifLogic = function(cmd, oldOut, elseFlag){
     }
     //for command result compare
     exec(cmd.compCommand, function(err, stdout, stderr){
+        if(err){
+            self.report('from ifLogic(): ' + err);
+        }
         if(oldOut == stdout){
             if(cmd.trueCommand){
                     self.baseExec(cmd.trueCommand);
@@ -156,3 +176,5 @@ Grunt.prototype.ifLogic = function(cmd, oldOut, elseFlag){
 exports.instance = function(snitch){
     return new Grunt(snitch);
 };
+
+exports.constr = Grunt;
