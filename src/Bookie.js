@@ -9,9 +9,28 @@ var Bookie = function(){
 };
 
 Bookie.prototype.watch = function(file, cmdFile) {
-	var commands, watcher;
+	var commands, watcher, stat, subFiles;
 	commands = interp.interpret(fs.readFileSync(cmdFile, 'utf8'));
-	watcher  = fs.watch( file, function( evt, filename ) { 
+	stat = fs.statSync(file);
+	if(stat.isFile()){
+		watcher = this.watch_(file, commands);
+		if(!this.registry_[file]){
+			this.registry_[file] = {'commandFile' : cmdFile, 'watcher' : watcher};
+		}
+	}
+	else{
+		subFiles = fs.readdirSync(file);
+		for(var i = 0; i < subFiles.length; i++){
+			watcher = this.watch_(subFiles[i], commands);
+			if(!this.registry_[subFiles[i]]){
+				this.registry_[subFiles[i]] = {'commandFile' : cmdFile, 'watcher' : watcher};
+			}
+		}
+	}
+};
+
+Bookie.prototype.watch_ = function(file, commands) {
+	var watcher = fs.watch( file, function( evt, filename ) { 
 	    if(toggle === true){
 	        grunt.doWorkSon(commands, 0);
 	        toggle = false;
@@ -19,9 +38,7 @@ Bookie.prototype.watch = function(file, cmdFile) {
 	        toggle = true;
 	    }
 	}); 
-	if(!this.registry_[file]){
-		this.registry_[file] = {'commandFile' : cmdFile, 'watcher' : watcher};
-	}
+	return watcher;
 };
 
 Bookie.prototype.unWatch = function(fileName) {

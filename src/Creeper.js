@@ -31,4 +31,6 @@ fs.watch( file, function( evt, filename ) {
         ->might have to look into the osx-notifier-dependency
     5.Finish writing tests for all of this shit
     6.allow individual files to be watched by multiple command files
+    7.resolve paths better with regards to where creeper is started from and 
+    what files the commands in the command file are referencing
     */

@@ -42,7 +42,8 @@ Grunt.prototype.run = function(cmd){
     var self = this;
     exec(cmd.baseCommand, function(err, stdout, stderr){
         if(err || stderr){
-            self.report(err || stderr);
+            var errString = 'Creeper ' + (err || stderr);
+            self.report(errString);
         }
         else if(cmd.compCommand || cmd.compString){
             if(cmd.trueCommand){
@@ -128,7 +129,6 @@ Grunt.prototype.ifLogic = function(cmd, oldOut, elseFlag){
     if(cmd.compString){
         //contains compare
         if(cmd.containsFlag){
-            console.log(typeof oldOut);
             if(oldOut.trim().contains(cmd.compString.trim())){
                 if(cmd.trueCommand){
                     self.baseExec(cmd.trueCommand);

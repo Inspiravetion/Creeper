@@ -1,10 +1,16 @@
 var fs          = require('fs'),
+	colors      = require('colors'),
 	Interpreter = require('../src/Interpreter.js').constr,
 	Bookie      = require('../src/Bookie.js').constr;
 
 describe('watch()', function(){
-	var file, cmdFile, bookie;
+	var file, cmdFile, bookie, stat;
 	beforeEach(function(){
+		stat = {
+			//need to test when this is false too!!!
+			isFile : function(){return true;}
+		};
+		spyOn(fs, 'statSync').andCallFake(function(){return stat});
 		spyOn(fs, 'readFileSync').andCallFake(function(){});
 		spyOn(Interpreter.prototype, 'interpret').andCallFake(function(){
 			return {'horribly' : 'mocked commands'};
@@ -82,8 +88,8 @@ describe('getMapping()', function(){
 		bookie.registry_[file2] = entry2;
 
 		compString += '-------------------------------------------------------\n';
-		compString += '\n1. File: file1  ==>  CommandFile: cmdFile1';
-		compString += '\n2. File: file2  ==>  CommandFile: cmdFile2';
+		compString += '\n1. File: ' + 'file1'.cyan + '  ==>  CommandFile: ' + 'cmdFile1'.cyan;
+		compString += '\n2. File: ' + 'file2'.cyan + '  ==>  CommandFile: ' + 'cmdFile2'.cyan;
 		expect(bookie.getMapping()).toEqual(compString);
 	});
 });
