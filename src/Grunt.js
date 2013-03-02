@@ -42,11 +42,21 @@ Grunt.prototype.run = function(cmd){
             }
             else{
                 if(cmd.compString){
-                    if(cmd.compString.trim() == stdout.trim()){
-                        self.report('Commands Match')
+                    if(cmd.containsFlag){
+                        if(stdout.trim().contains(cmd.compString.trim())){
+                            self.report('Command output contains compare string');
+                        }
+                        else{
+                            self.report('Command output does not contain compare string');
+                        }
                     }
                     else{
-                        self.report('Commands did not Match');
+                        if(cmd.compString.trim() == stdout.trim()){
+                            self.report('Commands Match')
+                        }
+                        else{
+                            self.report('Commands did not Match');
+                        }
                     }
                     return;
                 }
@@ -71,9 +81,8 @@ Grunt.prototype.baseExec = function(cmd){
 };
 
 Grunt.prototype.reportExec = function(cmd, oldOut){
-    var self = this,
-    compare = cmd.compCommand || cmd.compString;
-    exec(compare, function(err, stdout, stderr){
+    var self = this;
+    exec(cmd.compCommand, function(err, stdout, stderr){
         if(err || stderr){
             self.report(err || stderr);
         }else if(oldOut == stdout){
@@ -100,7 +109,22 @@ Grunt.prototype.report = function(msg){
 Grunt.prototype.ifLogic = function(cmd, oldOut, elseFlag){
     var self    = this;
     //For string compare
-        if(cmd.compString){
+    if(cmd.compString){
+        //contains compare
+        if(cmd.containsFlag){
+            if(oldOut.trim().contains(cmd.compString.trim())){
+                if(cmd.trueCommand){
+                    self.baseExec(cmd.trueCommand);
+                    return;
+                }   
+                self.report('Command contains check passed.')
+            }
+            else if(elseFlag){
+                self.baseExec(cmd.falseCommand);
+            }
+        }
+        //strict compare
+        else{
             if(oldOut.trim() == cmd.compString.trim()){
                 if(cmd.trueCommand){
                     self.baseExec(cmd.trueCommand);
@@ -111,8 +135,9 @@ Grunt.prototype.ifLogic = function(cmd, oldOut, elseFlag){
             else if(elseFlag){
                 self.baseExec(cmd.falseCommand);
             }
-            return;
         }
+        return;
+    }
     //for command result compare
     exec(cmd.compCommand, function(err, stdout, stderr){
         if(oldOut == stdout){
