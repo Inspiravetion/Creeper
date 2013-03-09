@@ -32,12 +32,18 @@ Creepl.prototype.startREPLServer = function() {
 		    , output: socket
 		    , terminal: true
 		    , useGlobal: false
+		    ,ignoreUndefined : true
 		    , eval: Creepl.prototype.customEval
 		    })
 		    r.on('exit', function () {
 		      socket.end()
 		    })
 		    r.context.socket = socket
+		  /*var _complete = repl.complete
+			repl.complete = function(line) {
+				//implement own complete
+			  _complete.apply(this, arguments)
+			}*/
 	}).listen(1337)
 };
 
@@ -62,6 +68,14 @@ Creepl.prototype.startREPLClient = function(){
 	process.stdin.on('end', function () {
 	  sock.destroy()
 	  console.log()
+	})
+
+	/* MAY BE ABLE TO USE THIS FOR AUTOCOMPLETE OF COMMANDS*/
+	process.stdin.on('data', function (b) {
+	  if((b + '') === '\t'){
+	  	//console.log('You just tabbed :)');
+	  	process.stdout.write('\u001B[0K\u001B[100D');
+	  }
 	})
 };
 

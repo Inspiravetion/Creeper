@@ -33,4 +33,10 @@ fs.watch( file, function( evt, filename ) {
     6.allow individual files to be watched by multiple command files
     7.resolve paths better with regards to where creeper is started from and 
     what files the commands in the command file are referencing
+    8.make it persistent so that if you kill it and restart it it watches the same files
+    that it was when you killed it
+    9.generate command files from the commandline
+    10.be able to add specific commands to files from commandline
+    11.be able to specify control logic from command line like 
+        '-if command1 -passes -thenrun command2 -elserun command3'
     */
