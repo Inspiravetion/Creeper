@@ -6,6 +6,9 @@ var Sifter = function() {
 	this.infinite_ = null;
 	this.atLeastOne_ = null;
 	this.zeroOrOne_ = null;
+	this.exactly_ = null;
+	this.between_ = null;
+	this.anti_ = null;
 }
 
 //Loose Navigation
@@ -110,6 +113,36 @@ Sifter.prototype.either = function(expArr) {
 	return this;
 };
 
+Sifter.prototype.charSet = function(exp) {
+	var chars;
+	if(typeof exp === 'function'){
+		chars = exp();
+	}
+	else if(typeof exp === 'array'){
+		chars = exp.join('');
+	}
+	else if(typeof exp === 'string'){
+		chars = exp;
+	}
+	else{
+		throw 'charSet() argument needs to be of type "function", "array", or "string"';
+	}
+	if(this.anti_){
+		this.regEx_ += '[^' + chars + ']';
+		this.anti_ = null;
+	}
+	else{
+		this.regEx_ += '[' + chars + ']';
+	}
+	quantify(this);
+	return this;
+};
+
+Sifter.prototype.anti = function() {
+	this.anti_ = true;
+	return this;
+};
+
 //Quantifiers
 Sifter.prototype.infinite = function() {
 	this.infinite_ = '*';
@@ -126,14 +159,52 @@ Sifter.prototype.zeroOrOne = function() {
 	return this;
 };
 
-//Character sets (NEED TO INCORPORATE QUANTIFIEERS INTO THIS)
+Sifter.prototype.exactly = function(num) {
+	this.exactly_ = num;
+	return this;
+};
+
+Sifter.prototype.between = function(start, end) {
+	this.between_ = {start_ : start, end_ : end};
+	return this;
+};
+
+//Character sets (negations and quantification happens in charSet call)
 Sifter.prototype.anyThing = function() {
 	this.regEx_ += '.*';
+	return this;
 };
 
 Sifter.prototype.alphaNumeric = function() {
-	this.regEx_ += '[A-Za-z0-9]';
-	quantify(this);
+	this.prototype.charSet('A-Za-z0-9');
+	return this;
+};
+
+Sifter.prototype.numeric = function() {
+	this.prototype.charSet('0-9');
+	return this;
+};
+
+Sifter.prototype.whiteSpace = function() {
+	this.prototype.charSet('\f\n\r\t\v​\u00A0\u1680​\u180e\u2000​\u2001'
+		+ '\u2002​\u2003\u2004​\u2005\u2006​\u2007\u2008​\u2009\u200a​'
+		+ '\u2028\u2029​\u2028\u2029​\u202f\u205f​\u3000'
+	);
+	return this;
+};
+
+Sifter.prototype.Letters = function() {
+	this.prototype.charSet('A-Za-z');
+	return this;
+};
+
+Sifter.prototype.lowerCase = function() {
+	this.prototype.charSet('a-z');
+	return this;
+};
+
+Sifter.prototype.upperCase = function() {
+	this.prototype.charSet('A-Z');
 	return this;
 };
 
@@ -141,14 +212,17 @@ Sifter.prototype.alphaNumeric = function() {
 //shoud only be specified on the outtermost chain)
 Sifter.prototype.isGlobal = function() {
 	this.flags_ += 'g';
+	return this;
 };
 
 Sifter.prototype.ignoresCase = function() {
 	this.flags_ += 'i';
+	return this;
 };
 
 Sifter.prototype.isMultiline = function() {
 	this.flags_ += 'm';
+	return this;
 };
 
 //Sifter Object Functions
@@ -199,14 +273,23 @@ function quantify(sifter){
 		sifter.regEx_ += sifter.zeroOrOne_;
 		sifter.zeroOrOne_ = null;
 	}
+	else if(sifter.exactly_){
+		sifter.regEx_ += '{' + sifter.exactly_ + '}';
+		sifter.exactly_ = null;
+	}
+	else if(sifter.between_){
+		sifter.regEx_ += '{' + sifter.between_.start_ +
+			',' + sifter.between_.end_ + '}';
+		sifter.between_ = null;
+	}
 }
 
 //Syntax========================================================================
 
 var baseCommand = new Sifter()
 	.startsWith('{')
-	.captures(function(@){
-		@
+	.captures(function(s){
+		s
 		.infinite()
 		.alphaNumeric();
 	})
